@@ -13,7 +13,9 @@ import { GetLeadsQueryDto } from '../dtos/get-leads-query.dto';
 import { RegisterDto } from '../dtos/register.dto';
 import { UpdateUserDto } from '../dtos/update.dto';
 import { Throttle } from '@nestjs/throttler';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('leads')
 export class LeadsController {
   constructor(private readonly leadsService: LeadsService) {}

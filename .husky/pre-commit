@@ -1,0 +1,10 @@
+echo "🔍 Ejecutando Linter y Prettier..."
+npx lint-staged || exit 1
+
+echo "🧪 Ejecutando pruebas unitarias..."
+pnpm run test || exit 1
+
+echo "🏗️  Validando compilación (Build)..."
+pnpm run build || exit 1
+
+echo "\n✅ ¡Todo perfecto! Procediendo al commit..."

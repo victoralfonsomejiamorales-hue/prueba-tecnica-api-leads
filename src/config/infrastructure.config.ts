@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { User, UserSchema } from 'src/common/models/user.model';
 import { AiModule } from 'src/ai/ai.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 export const InfrastructureConfig = [
   AiModule,
@@ -34,6 +35,20 @@ export const InfrastructureConfig = [
         },
       };
     },
+  }),
+
+  ThrottlerModule.forRootAsync({
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) => ({
+      errorMessage: 'Too many requests',
+      throttlers: [
+        {
+          name: 'default',
+          ttl: configService.get<number>('throttleTTL')!,
+          limit: configService.get<number>('throttleLimit')!,
+        },
+      ],
+    }),
   }),
 
   MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),

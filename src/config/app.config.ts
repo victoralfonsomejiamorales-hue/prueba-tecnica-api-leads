@@ -5,6 +5,8 @@ interface Configuration {
   groqApiKey: string;
   groqBaseUrl: string;
   groqModel: string;
+  throttleTTL: number;
+  throttleLimit: number;
 }
 
 export default (): Configuration => {
@@ -15,6 +17,8 @@ export default (): Configuration => {
     GROQ_API_KEY,
     GROQ_BASE_URL,
     GROQ_MODEL,
+    THROTTLE_TTL,
+    THROTTLE_LIMIT,
   } = process.env;
 
   if (
@@ -23,7 +27,9 @@ export default (): Configuration => {
     !MONGODB_URI ||
     !GROQ_API_KEY ||
     !GROQ_BASE_URL ||
-    !GROQ_MODEL
+    !GROQ_MODEL ||
+    !THROTTLE_TTL ||
+    !THROTTLE_LIMIT
   ) {
     throw new Error('Missing required environment variables');
   }
@@ -35,5 +41,7 @@ export default (): Configuration => {
     groqApiKey: GROQ_API_KEY,
     groqBaseUrl: GROQ_BASE_URL,
     groqModel: GROQ_MODEL,
+    throttleTTL: Number(THROTTLE_TTL),
+    throttleLimit: Number(THROTTLE_LIMIT),
   };
 };

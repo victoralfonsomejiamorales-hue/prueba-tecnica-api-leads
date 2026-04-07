@@ -12,7 +12,9 @@ import { LeadsService } from '../services/leads.service';
 import { GetLeadsQueryDto } from '../dtos/get-leads-query.dto';
 import { RegisterDto } from '../dtos/register.dto';
 import { UpdateUserDto } from '../dtos/update.dto';
+import { Throttle } from '@nestjs/throttler';
 
+@Throttle({ default: { ttl: 60000, limit: 3 } })
 @Controller('leads')
 export class LeadsController {
   constructor(private readonly leadsService: LeadsService) {}

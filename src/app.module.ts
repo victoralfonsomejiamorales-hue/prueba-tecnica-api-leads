@@ -7,11 +7,22 @@ import { LeadsController } from './modules/leads/controllers/leads.controller';
 import { LeadsService } from './modules/leads/services/leads.service';
 import { LeadsRepository } from './modules/leads/repositories/leads.repository';
 import { AiService } from './ai/ai.service';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [...InfrastructureConfig],
   controllers: [AppController, LeadsController],
-  providers: [AppService, LeadsService, LeadsRepository, AiService],
+  providers: [
+    AppService,
+    LeadsService,
+    LeadsRepository,
+    AiService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

@@ -9,4 +9,6 @@ export const envValidationSchema = Joi.object({
   GROQ_API_KEY: Joi.string().required(),
   GROQ_BASE_URL: Joi.string().required(),
   GROQ_MODEL: Joi.string().required(),
+  THROTTLE_TTL: Joi.number().default(60),
+  THROTTLE_LIMIT: Joi.number().default(10),
 });

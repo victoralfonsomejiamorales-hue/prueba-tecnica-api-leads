@@ -32,6 +32,13 @@ export class User {
 
   @Prop({
     type: String,
+    trim: true,
+    select: false,
+  })
+  password: string;
+
+  @Prop({
+    type: String,
     required: true,
     trim: true,
     min: 2,

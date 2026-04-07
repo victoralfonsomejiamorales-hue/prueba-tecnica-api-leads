@@ -17,7 +17,7 @@ export class LeadsRepository {
   }
 
   async getOne(email: string) {
-    return this.userModel.findOne({ email });
+    return this.userModel.findOne({ email }).select('+password').exec();
   }
 
   async getOneById(id: string) {

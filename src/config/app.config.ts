@@ -7,6 +7,7 @@ interface Configuration {
   groqModel: string;
   throttleTTL: number;
   throttleLimit: number;
+  jwtSecret: string;
 }
 
 export default (): Configuration => {
@@ -19,6 +20,7 @@ export default (): Configuration => {
     GROQ_MODEL,
     THROTTLE_TTL,
     THROTTLE_LIMIT,
+    JWT_SECRET,
   } = process.env;
 
   if (
@@ -29,7 +31,8 @@ export default (): Configuration => {
     !GROQ_BASE_URL ||
     !GROQ_MODEL ||
     !THROTTLE_TTL ||
-    !THROTTLE_LIMIT
+    !THROTTLE_LIMIT ||
+    !JWT_SECRET
   ) {
     throw new Error('Missing required environment variables');
   }
@@ -43,5 +46,6 @@ export default (): Configuration => {
     groqModel: GROQ_MODEL,
     throttleTTL: Number(THROTTLE_TTL),
     throttleLimit: Number(THROTTLE_LIMIT),
+    jwtSecret: JWT_SECRET,
   };
 };

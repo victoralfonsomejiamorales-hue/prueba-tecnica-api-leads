@@ -4,7 +4,7 @@ import { LeadsRepository } from './repositories/leads.repository';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { RegisterDto } from './dtos/register.dto';
 import { UserRole, UserSource } from 'src/common/models/user.model';
-import { AiService } from 'src/ai/ai.service';
+import { AiService } from 'src/utils/ai/ai.service';
 
 describe('LeadsService', () => {
   let service: LeadsService;

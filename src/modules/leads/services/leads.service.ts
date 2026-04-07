@@ -6,7 +6,7 @@ import {
 import { LeadsRepository } from '../repositories/leads.repository';
 import { RegisterDto } from '../dtos/register.dto';
 import { filterType, getLeadsQueryType } from '../types/types';
-import { AiService } from 'src/ai/ai.service';
+import { AiService } from 'src/utils/ai/ai.service';
 
 @Injectable()
 export class LeadsService {

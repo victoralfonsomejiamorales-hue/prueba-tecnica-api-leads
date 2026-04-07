@@ -5,8 +5,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { User, UserSchema } from 'src/common/models/user.model';
-import { AiModule } from 'src/ai/ai.module';
+import { AiModule } from 'src/utils/ai/ai.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { JwtModule } from '@nestjs/jwt';
 
 export const InfrastructureConfig = [
   AiModule,
@@ -15,6 +16,15 @@ export const InfrastructureConfig = [
     isGlobal: true,
     envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     validationSchema: envValidationSchema,
+  }),
+
+  JwtModule.registerAsync({
+    imports: [ConfigModule],
+    useFactory: (configService: ConfigService) => ({
+      secret: configService.get<string>('jwtSecret'),
+      signOptions: { expiresIn: '10y' },
+    }),
+    inject: [ConfigService],
   }),
 
   MongooseModule.forRootAsync({

@@ -11,6 +11,7 @@ export enum UserSource {
   Facebook = 'facebook',
   LandingPage = 'landing_page',
   Referral = 'referral',
+  Typeform = 'typeform',
   Other = 'other',
 }
 

@@ -1,10 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LeadsService } from './services/leads.service';
 import { LeadsRepository } from './repositories/leads.repository';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { RegisterDto } from './dtos/register.dto';
 import { UserRole, UserSource } from 'src/common/models/user.model';
 import { AiService } from 'src/utils/ai/ai.service';
+import { TypeformWebhookPayload } from './interfaces/typeform.interface';
 
 describe('LeadsService', () => {
   let service: LeadsService;
@@ -217,6 +222,77 @@ describe('LeadsService', () => {
       mockAiService.generateSummary.mockRejectedValue(new Error('Groq Error'));
 
       await expect(service.getAiSummary({})).rejects.toThrow('Groq Error');
+    });
+  });
+
+  describe('handleWebhook', () => {
+    it('should throw BadRequestException if email is missing in the payload', async () => {
+      const invalidPayload = {
+        form_response: {
+          answers: [{ type: 'text', text: 'Victor' }], // No hay email
+        },
+      } as unknown as TypeformWebhookPayload;
+
+      await expect(service.handleWebhook(invalidPayload)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should return success message if lead already exists (Idempotency)', async () => {
+      const mockPayload = {
+        form_response: {
+          answers: [
+            { type: 'email', email: 'existing@test.com' },
+            { type: 'text', text: 'Victor' },
+          ],
+        },
+      } as unknown as TypeformWebhookPayload;
+
+      mockLeadsRepository.getOne.mockResolvedValue({
+        id: '123',
+        email: 'existing@test.com',
+      });
+
+      const result = await service.handleWebhook(mockPayload);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Lead already exists, skipping creation');
+      expect(mockLeadsRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should create a new lead correctly from Typeform payload', async () => {
+      const mockPayload = {
+        form_response: {
+          form_id: 'form123',
+          submitted_at: '2026-04-07T10:00:00Z',
+          definition: { title: 'Test Form' },
+          answers: [
+            { type: 'email', email: 'new@typeform.com' },
+            { type: 'text', text: 'Victor User' },
+            { type: 'phone_number', phone_number: '+5730000000' },
+          ],
+        },
+      } as unknown as TypeformWebhookPayload;
+
+      mockLeadsRepository.getOne.mockResolvedValue(null);
+      mockLeadsRepository.create.mockResolvedValue({ _id: 'new-id' });
+
+      const result = await service.handleWebhook(mockPayload);
+
+      expect(result.success).toBe(true);
+      expect(result.leadId).toBe('new-id');
+
+      // Verificamos que se llame al repositorio con el RegisterDto correcto
+      expect(mockLeadsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'new@typeform.com',
+          name: 'Victor User',
+          source: UserSource.Typeform,
+          role: UserRole.User,
+          isLead: true,
+          phone: '+5730000000',
+        }),
+      );
     });
   });
 });

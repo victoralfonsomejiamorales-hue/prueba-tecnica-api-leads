@@ -13,7 +13,9 @@ import { GetLeadsQueryDto } from '../dtos/get-leads-query.dto';
 import { RegisterDto } from '../dtos/register.dto';
 import { UpdateUserDto } from '../dtos/update.dto';
 import { Throttle } from '@nestjs/throttler';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
+import * as typeformInterface from '../interfaces/typeform.interface';
 
 @ApiBearerAuth()
 @Controller('leads')
@@ -23,6 +25,13 @@ export class LeadsController {
   @Post()
   create(@Body() data: RegisterDto) {
     return this.leadsService.create(data);
+  }
+
+  @Public()
+  @Post('webhook')
+  @ApiOperation({ summary: 'Recibir leads desde Typeform (Público)' })
+  async handleWebhook(@Body() body: typeformInterface.TypeformWebhookPayload) {
+    return this.leadsService.handleWebhook(body);
   }
 
   @Throttle({ default: { ttl: 60000, limit: 5 } })

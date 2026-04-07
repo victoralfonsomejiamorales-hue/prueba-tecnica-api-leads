@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -7,6 +8,8 @@ import { LeadsRepository } from '../repositories/leads.repository';
 import { RegisterDto } from '../dtos/register.dto';
 import { filterType, getLeadsQueryType } from '../types/types';
 import { AiService } from 'src/utils/ai/ai.service';
+import { UserRole, UserSource } from 'src/common/models/user.model';
+import { TypeformWebhookPayload } from '../interfaces/typeform.interface';
 
 @Injectable()
 export class LeadsService {
@@ -80,5 +83,49 @@ export class LeadsService {
     }
 
     return this.aiService.generateSummary(leads);
+  }
+
+  async handleWebhook(data: TypeformWebhookPayload) {
+    const { form_response } = data;
+
+    const emailAnswer = form_response.answers.find(
+      (ans) => ans.type === 'email',
+    );
+    const nameAnswer = form_response.answers.find((ans) => ans.type === 'text');
+    const phoneAnswer = form_response.answers.find(
+      (ans) => ans.type === 'phone_number',
+    );
+
+    const email = emailAnswer?.email;
+    if (!email) {
+      throw new BadRequestException('Email not found in webhook payload');
+    }
+
+    const existingLead = await this.leadsRepository.getOne(email);
+    if (existingLead) {
+      return {
+        success: true,
+        message: 'Lead already exists, skipping creation',
+      };
+    }
+
+    const leadData: RegisterDto = {
+      email,
+      name: nameAnswer?.text || 'User de Typeform',
+      role: UserRole.User,
+      source: UserSource.Typeform,
+      isLead: true,
+      phone: phoneAnswer?.phone_number || '',
+      interestProduct: form_response.definition.title,
+      budget: 0,
+    };
+
+    const newLead = await this.leadsRepository.create(leadData);
+
+    return {
+      success: true,
+      leadId: newLead._id,
+      message: 'Lead created from Typeform',
+    };
   }
 }

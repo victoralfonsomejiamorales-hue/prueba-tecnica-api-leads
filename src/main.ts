@@ -14,7 +14,6 @@ async function bootstrap() {
   const nodeEnv = configService.get<string>('nodeEnv')!;
   const logger = new Logger('Bootstrap');
 
-  // --- Configuración de Swagger ---
   const config = new DocumentBuilder()
     .setTitle('API Leads & AI Analysis')
     .setDescription(
@@ -23,19 +22,19 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('Leads', 'Gestión y filtrado de prospectos')
     .addTag('Auth', 'Autenticación y seguridad')
-    .addBearerAuth() // Habilita el botón de candado para JWT
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
-      persistAuthorization: true, // Mantiene el token aunque refresques la página
+      persistAuthorization: true,
     },
   });
 
   app.use(
     helmet({
-      contentSecurityPolicy: false, // Necesario para que la UI de Swagger cargue correctamente
+      contentSecurityPolicy: false,
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );

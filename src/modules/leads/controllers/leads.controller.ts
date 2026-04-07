@@ -22,6 +22,7 @@ import * as typeformInterface from '../interfaces/typeform.interface';
 export class LeadsController {
   constructor(private readonly leadsService: LeadsService) {}
 
+  @Public()
   @Post()
   create(@Body() data: RegisterDto) {
     return this.leadsService.create(data);

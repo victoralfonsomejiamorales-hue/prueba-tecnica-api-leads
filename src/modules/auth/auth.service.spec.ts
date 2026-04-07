@@ -5,6 +5,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { BcryptService } from 'src/utils/bcrypt.service';
 import { LeadsRepository } from '../leads/repositories/leads.repository';
+import { CreatePasswordDto } from './dto/create-password.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -106,7 +107,10 @@ describe('AuthService', () => {
       mockBcryptService.hashPassword.mockResolvedValue('new_hashed_password');
       mockLeadsRepository.update.mockResolvedValue({});
 
-      const result = await service.createPassword(email, pass);
+      const result = await service.createPassword({
+        email,
+        password: pass,
+      } as CreatePasswordDto);
 
       expect(result.success).toBe(true);
       expect(mockBcryptService.hashPassword).toHaveBeenCalledWith(pass);
@@ -119,9 +123,9 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException if user to update is not found', async () => {
       mockLeadsRepository.getOne.mockResolvedValue(null);
 
-      await expect(service.createPassword(email, pass)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.createPassword({ email, password: pass } as CreatePasswordDto),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 });

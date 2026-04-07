@@ -4,6 +4,7 @@ import { BcryptService } from '../../../utils/bcrypt.service';
 import { LoginDto } from '../dto/login.dto';
 import { Types } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
+import { CreatePasswordDto } from '../dto/create-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -43,13 +44,17 @@ export class AuthService {
     };
   }
 
-  async createPassword(email: string, password: string) {
-    const userExists = await this.leadsRepository.getOne(email);
+  async createPassword(createPasswordDto: CreatePasswordDto) {
+    const userExists = await this.leadsRepository.getOne(
+      createPasswordDto.email,
+    );
     if (!userExists) {
       throw new UnauthorizedException('User not found');
     }
 
-    const hashedPassword = await this.bcryptService.hashPassword(password);
+    const hashedPassword = await this.bcryptService.hashPassword(
+      createPasswordDto.password,
+    );
     await this.leadsRepository.update(userExists._id.toString(), {
       password: hashedPassword,
     });

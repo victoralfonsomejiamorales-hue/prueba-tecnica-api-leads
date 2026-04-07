@@ -33,7 +33,7 @@ export class LeadsRepository {
   }
 
   async update(id: string, data: Partial<User>) {
-    return this.userModel.findByIdAndUpdate(id, data);
+    return this.userModel.findByIdAndUpdate(id, data, { new: true });
   }
 
   async delete(id: string) {

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # No especificamos 'target' para que use la última etapa del Dockerfile (runner)
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env.production
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: always # En prod, siempre intentamos revivir el contenedor
+    networks:
+      - app-network
+    environment:
+      - NODE_ENV=production
+      # La URL de conexión incluiría las credenciales
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongo:27017/${MONGO_DB}?authSource=admin
+
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo_prod_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS}
+      - MONGO_INITDB_DATABASE=${MONGO_DB}
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - app-network
+
+volumes:
+  mongo_prod_data:
+
+networks:
+  app-network:
+    driver: bridge

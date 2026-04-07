@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder # IMPORTANTE: Detenerse en la etapa de build
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env.development
+    # SOBREESCRIBIMOS EL COMANDO PARA DESARROLLO
+    command: pnpm run start:dev
+    depends_on:
+      mongo:
+        condition: service_healthy # Espera a que Mongo esté LISTO, no solo arrancado
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      # Volúmenes anónimos para proteger las dependencias internas
+      - /app/node_modules
+    networks:
+      - app-network
+    environment:
+      - NODE_ENV=development
+      # Forzamos la URL de conexión a usar el nombre del servicio 'mongo'
+      - MONGO_URI=mongodb://mongo:27017/${MONGO_DB:-api-leads}
+
+  mongo:
+    image: mongo:7
+    ports:
+      - '${MONGO_PORT:-27017}:27017'
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  mongo_data:
+
+networks:
+  app-network:
+    driver: bridge
